@@ -1,8 +1,16 @@
-FROM alpine as alpine
+FROM alpine:3.10 as alpine
 
 ARG GCC_VERSION
 ENV GCC_VERSION=${GCC_VERSION}
 
+RUN set -x \   
+    && echo 'http://mirrors.ustc.edu.cn/alpine/v3.10/main' > /etc/apk/repositories \
+    && echo 'http://mirrors.ustc.edu.cn/alpine/v3.10/community' >>/etc/apk/repositories \
+    && apk update \
+    && apk add -U tzdata \
+    && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+    && echo "Asia/Shanghai" > /etc/timezone \
+    && apk del tzdata
 
 FROM alpine as builder
 
@@ -15,8 +23,10 @@ RUN apk add --quiet --no-cache \
             mpfr-dev \
             texinfo \
             zlib-dev
-RUN wget -q https://ftp.gnu.org/gnu/gcc/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.gz && \
-    tar -xzf gcc-${GCC_VERSION}.tar.gz && \
+
+COPY ./gcc-7.5.0.tar.gz /gcc-7.5.0.tar.gz
+# RUN wget -q https://ftp.gnu.org/gnu/gcc/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.gz && \
+RUN tar -xzf gcc-${GCC_VERSION}.tar.gz && \
     rm -f gcc-${GCC_VERSION}.tar.gz
 
 WORKDIR /gcc-${GCC_VERSION}
